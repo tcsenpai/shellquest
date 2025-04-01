@@ -1,7 +1,9 @@
 # ShellQuest
 
 ![screenshot](./screenshot.png)
-ShellQuest is an interactive text-based escape room game that challenges players to solve puzzles using Linux terminal commands and concepts.
+ShellQuest is an expandable, hackable and open source interactive text-based escape room game and engine that challenges players to solve puzzles using Linux terminal commands and concepts.
+
+The main aim of ShellQuest is to be expanded by the users that can then share their levels with others.
 
 ## Introduction
 
