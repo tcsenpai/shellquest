@@ -133,7 +133,7 @@ export async function typewriter(text: string, speed = 10): Promise<void> {
 
 // Generate a cool logo
 export function generateLogo(): string {
-  const logo = figletText('TERMINAL ESCAPE', 'ANSI Shadow');
+  const logo = figletText('SHELLQUEST', 'ANSI Shadow');
   return currentTheme.logo(logo);
 }
 
@@ -145,12 +145,12 @@ export async function bootSequence(): Promise<void> {
   await loadingAnimation('Loading kernel modules', 800);
   await loadingAnimation('Mounting file systems', 600);
   await loadingAnimation('Starting network services', 700);
-  await loadingAnimation('Launching Terminal Escape', 1000);
+  await loadingAnimation('Launching ShellQuest', 1000);
   
   console.log('\n');
   console.log(generateLogo());
   console.log('\n');
   
-  await animateText('Welcome to Terminal Escape - A Linux Terminal Escape Room Game', 20);
+  await animateText('Welcome to ShellQuest - A Linux Terminal Escape Room Game', 20);
   console.log('\n');
 } 

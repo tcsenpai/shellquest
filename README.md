@@ -1,11 +1,11 @@
-# Terminal Escape
+# ShellQuest
 
 ![screenshot](./screenshot.png)
-Terminal Escape is an interactive text-based escape room game that challenges players to solve puzzles using Linux terminal commands and concepts.
+ShellQuest is an interactive text-based escape room game that challenges players to solve puzzles using Linux terminal commands and concepts.
 
 ## Introduction
 
-In Terminal Escape, you'll navigate through a series of increasingly difficult levels, each requiring you to use your knowledge of Linux commands and problem-solving skills. Whether you're a Linux expert or a beginner, the game provides an engaging way to learn and practice terminal skills in a fun, gamified environment.
+In ShellQuest, you'll navigate through a series of increasingly difficult levels, each requiring you to use your knowledge of Linux commands and problem-solving skills. Whether you're a Linux expert or a beginner, the game provides an engaging way to learn and practice terminal skills in a fun, gamified environment.
 
 ## Features
 
@@ -60,7 +60,7 @@ Check your achievements from the main menu to track your progress.
 
 ## Creating New Levels
 
-Terminal Escape is designed to be easily expandable with new levels. If you're interested in creating your own levels, check out the [LEVELS.md](LEVELS.md) guide in the repository.
+ShellQuest is designed to be easily expandable with new levels. If you're interested in creating your own levels, check out the [LEVELS.md](LEVELS.md) guide in the repository.
 
 ## Troubleshooting
 

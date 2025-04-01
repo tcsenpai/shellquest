@@ -37,7 +37,7 @@ export async function renderGameUI(): Promise<void> {
     
     // Display game header
     console.log(drawBox(
-      `TERMINAL ESCAPE - ${theme.accent(currentLevel.name)}`,
+      `SHELLQUEST - ${theme.accent(currentLevel.name)}`,
       `Player: ${theme.accent(gameState.playerName)}\nLevel: ${gameState.currentLevel}/${getAllLevels().length}`
     ));
     console.log('');
@@ -148,7 +148,7 @@ async function showHelp(): Promise<void> {
   clearScreen();
   console.log(theme.accent('=== Help ==='));
   console.log('');
-  console.log('Terminal Escape is a puzzle game where you solve Linux-themed challenges.');
+  console.log('ShellQuest is a puzzle game where you solve Linux-themed challenges.');
   console.log('');
   console.log(theme.secondary('Special Commands:'));
   console.log(`${theme.accent('/help')}  - Show this help screen`);

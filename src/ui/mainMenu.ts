@@ -91,7 +91,7 @@ export async function renderMainMenu(): Promise<void> {
       return;
     } else if (choice === '7') {
       // Exit
-      await animateText('Thanks for playing Terminal Escape!', 30);
+      await animateText('Thanks for playing ShellQuest!', 30);
       process.exit(0);
     } else {
       console.log(theme.error('Invalid option. Press Enter to continue...'));

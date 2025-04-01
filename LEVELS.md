@@ -1,9 +1,8 @@
-
 # LEVELS.md - Guide to Adding New Levels
 
 ## Introduction
 
-Terminal Escape is designed to be easily expandable with new levels. This guide explains how to create and integrate new levels into the game.
+ShellQuest is designed to be easily expandable with new levels. This guide explains how to create and integrate new levels into the game.
 
 ## Level Structure
 

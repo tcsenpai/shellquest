@@ -52,7 +52,7 @@ export async function renderEntryMenu(): Promise<void> {
         return;
       }
     } else if (choice === '3') {
-      console.log('Thanks for playing Terminal Escape!');
+      console.log('Thanks for playing ShellQuest!');
       process.exit(0);
     } else {
       console.log(theme.error('Invalid option. Press Enter to continue...'));
