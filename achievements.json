@@ -1,0 +1,59 @@
+[
+  {
+    "id": "first_steps",
+    "name": "First Steps",
+    "description": "Complete your first level",
+    "icon": "🏆",
+    "unlocked": false
+  },
+  {
+    "id": "speed_demon",
+    "name": "Speed Demon",
+    "description": "Complete a level in under 60 seconds",
+    "icon": "⚡",
+    "unlocked": false
+  },
+  {
+    "id": "no_hints",
+    "name": "Solo Hacker",
+    "description": "Complete a level without using hints",
+    "icon": "🧠",
+    "unlocked": false
+  },
+  {
+    "id": "command_master",
+    "name": "Command Master",
+    "description": "Use at least 10 different commands in one level",
+    "icon": "💻",
+    "unlocked": false
+  },
+  {
+    "id": "persistence",
+    "name": "Persistence",
+    "description": "Try at least 20 commands in a single level",
+    "icon": "🔨",
+    "unlocked": false
+  },
+  {
+    "id": "explorer",
+    "name": "Explorer",
+    "description": "Visit all directories in a file system level",
+    "icon": "🧭",
+    "unlocked": false
+  },
+  {
+    "id": "easter_egg_hunter",
+    "name": "Easter Egg Hunter",
+    "description": "Find a hidden secret",
+    "icon": "🥚",
+    "secret": true,
+    "unlocked": false
+  },
+  {
+    "id": "master_hacker",
+    "name": "Master Hacker",
+    "description": "Complete the game",
+    "icon": "👑",
+    "unlocked": false
+  }
+]

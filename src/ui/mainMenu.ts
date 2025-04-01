@@ -14,9 +14,23 @@ import {
   successAnimation,
   loadingAnimation
 } from './visualEffects';
+import { showAchievements } from '../core/achievements';
+import { renderProgressMap } from './progressMap';
+import { 
+  toggleSound, 
+  toggleAmbientSound, 
+  toggleSoundEffects, 
+  setSoundVolume,
+  soundConfig,
+  initSoundSystem
+} from './soundEffects';
+import { addToHistory } from './commandHistory';
 
 // Track if we've shown the boot sequence
 let bootSequenceShown = false;
+
+// Initialize sound system in the main menu
+initSoundSystem();
 
 export async function renderMainMenu(): Promise<void> {
   // Show boot sequence only once
@@ -41,8 +55,10 @@ export async function renderMainMenu(): Promise<void> {
       '1. ' + theme.accent('New Game'),
       '2. ' + theme.accent('Load Game'),
       '3. ' + theme.accent('Leaderboard'),
-      '4. ' + theme.accent('Settings'),
-      '5. ' + theme.accent('Exit')
+      '4. ' + theme.accent('Achievements'),
+      '5. ' + theme.accent('Progress Map'),
+      '6. ' + theme.accent('Settings'),
+      '7. ' + theme.accent('Exit')
     ];
     
     console.log(drawBox('MAIN MENU', menuOptions.join('\n')));
@@ -61,9 +77,18 @@ export async function renderMainMenu(): Promise<void> {
         await showLeaderboard();
         break;
       case '4':
-        await showSettings();
+        await showAchievements();
+        await promptInput('Press Enter to continue...');
         break;
       case '5':
+        clearScreen();
+        renderProgressMap();
+        await promptInput('Press Enter to continue...');
+        break;
+      case '6':
+        await showSettings();
+        break;
+      case '7':
         await animateText('Thanks for playing Terminal Escape!', 30);
         process.exit(0);
       default:
@@ -204,4 +229,69 @@ async function showLeaderboard(): Promise<void> {
   
   console.log('');
   await promptInput('Press Enter to return to main menu...');
+}
+
+// Add this function to the mainMenu.ts file
+async function soundSettings(): Promise<void> {
+  const theme = getTheme();
+  
+  while (true) {
+    clearScreen();
+    console.log(theme.accent('=== SOUND SETTINGS ==='));
+    console.log('');
+    
+    console.log(`1. Sound: ${soundConfig.enabled ? theme.success('ON') : theme.error('OFF')}`);
+    console.log(`2. Ambient Sound: ${soundConfig.ambientEnabled ? theme.success('ON') : theme.error('OFF')}`);
+    console.log(`3. Sound Effects: ${soundConfig.effectsEnabled ? theme.success('ON') : theme.error('OFF')}`);
+    console.log(`4. Volume: ${Math.round(soundConfig.volume * 100)}%`);
+    console.log('5. Back to Settings');
+    console.log('');
+    
+    const choice = await promptInput('Select an option: ');
+    
+    switch (choice) {
+      case '1':
+        toggleSound();
+        break;
+      case '2':
+        toggleAmbientSound();
+        break;
+      case '3':
+        toggleSoundEffects();
+        break;
+      case '4':
+        await changeVolume();
+        break;
+      case '5':
+        return;
+      default:
+        console.log(theme.error('Invalid option. Press Enter to continue...'));
+        await promptInput('');
+    }
+  }
+}
+
+// Add this function to change volume
+async function changeVolume(): Promise<void> {
+  const theme = getTheme();
+  
+  clearScreen();
+  console.log(theme.accent('=== VOLUME SETTINGS ==='));
+  console.log('');
+  
+  console.log('Current volume: ' + Math.round(soundConfig.volume * 100) + '%');
+  console.log('Enter a value between 0 and 100:');
+  
+  const input = await promptInput('');
+  const volume = parseInt(input);
+  
+  if (isNaN(volume) || volume < 0 || volume > 100) {
+    console.log(theme.error('Invalid volume. Please enter a number between 0 and 100.'));
+    await promptInput('Press Enter to continue...');
+    return;
+  }
+  
+  setSoundVolume(volume / 100);
+  console.log(theme.success(`Volume set to ${volume}%`));
+  await promptInput('Press Enter to continue...');
 } 

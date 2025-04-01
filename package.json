@@ -15,6 +15,7 @@
     "bun-types": "latest"
   },
   "dependencies": {
+    "beep": "^0.0.0",
     "figlet": "^1.6.0",
     "figlet-cli": "^0.2.0",
     "gradient-string": "^2.0.2",

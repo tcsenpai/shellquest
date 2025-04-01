@@ -1,20 +1,49 @@
-import player from 'play-sound';
+// Simplified sound effects module that doesn't actually play sounds
+// but maintains the interface for the rest of the application
 
-const audioPlayer = player({});
+export const soundConfig = {
+  enabled: false,
+  volume: 0.5,
+  ambientEnabled: false,
+  effectsEnabled: false
+};
 
+// Play a sound effect (does nothing)
 export function playSound(sound: 'success' | 'error' | 'typing' | 'levelComplete'): void {
-  try {
-    const soundMap = {
-      success: 'sounds/success.wav',
-      error: 'sounds/error.wav',
-      typing: 'sounds/typing.wav',
-      levelComplete: 'sounds/level-complete.wav'
-    };
-    
-    audioPlayer.play(soundMap[sound], (err) => {
-      if (err) console.error('Error playing sound:', err);
-    });
-  } catch (error) {
-    // Silently fail if sound can't be played
-  }
+  // No-op function to maintain API compatibility
+}
+
+// Play ambient sound (does nothing)
+export function playAmbientSound(): void {
+  // No-op function to maintain API compatibility
+}
+
+// Stop the ambient sound (does nothing)
+export function stopAmbientSound(): void {
+  // No-op function to maintain API compatibility
+}
+
+// Toggle sound on/off
+export function toggleSound(): boolean {
+  return soundConfig.enabled;
+}
+
+// Toggle ambient sound on/off
+export function toggleAmbientSound(): boolean {
+  return soundConfig.ambientEnabled;
+}
+
+// Toggle sound effects on/off
+export function toggleSoundEffects(): boolean {
+  return soundConfig.effectsEnabled;
+}
+
+// Set sound volume
+export function setSoundVolume(volume: number): void {
+  soundConfig.volume = Math.max(0, Math.min(1, volume));
+}
+
+// Initialize sound system (does nothing)
+export function initSoundSystem(): void {
+  // No-op function to maintain API compatibility
 } 

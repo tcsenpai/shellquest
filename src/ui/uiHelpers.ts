@@ -1,5 +1,7 @@
 import readline from 'readline';
 import kleur from 'kleur';
+import { getCurrentGameState } from '../core/gameState';
+import { getPreviousCommand, getNextCommand } from './commandHistory';
 
 // Enable colors
 kleur.enabled = true;

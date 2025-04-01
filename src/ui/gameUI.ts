@@ -10,6 +10,8 @@ import {
 } from './visualEffects';
 import { playSound } from './soundEffects';
 import { levelUI } from './levelRenderer';
+import { addToHistory } from './commandHistory';
+import { triggerAchievement } from '../core/achievements';
 
 export async function renderGameUI(): Promise<void> {
   const gameState = getCurrentGameState();
@@ -54,6 +56,10 @@ export async function renderGameUI(): Promise<void> {
     levelUI.inputBox();
     const input = await promptInput('');
     
+    if (input.trim()) {
+      addToHistory(gameState.playerName, input);
+    }
+    
     // Handle special commands
     if (input.startsWith('/')) {
       const command = input.slice(1).toLowerCase();
@@ -76,6 +82,7 @@ export async function renderGameUI(): Promise<void> {
       }
       
       if (command === 'hint') {
+        await triggerAchievement('hint_used');
         await showHint(currentLevel.hints);
         continue;
       }
@@ -93,6 +100,15 @@ export async function renderGameUI(): Promise<void> {
     if (result.completed) {
       playSound('levelComplete');
       await completeCurrentLevel();
+      
+      // Trigger level completion achievement
+      await triggerAchievement('level_completed', {
+        levelId: gameState.currentLevel,
+        usedHint: gameState.levelStates[gameState.currentLevel]?.usedHint || false,
+        timeSpent: gameState.levelStates[gameState.currentLevel]?.timeSpent || 0,
+        allLevels: getAllLevels().length
+      });
+      
       await successAnimation('Level completed!');
       
       if (result.nextAction === 'main_menu') {
@@ -116,6 +132,9 @@ export async function renderGameUI(): Promise<void> {
         }
       }
     }
+    
+    // When using a command, track it for achievements
+    await triggerAchievement('command_used', { command: input });
   }
 }
 
