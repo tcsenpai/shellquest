@@ -9,6 +9,7 @@ import {
   loadingAnimation
 } from './visualEffects';
 import { playSound } from './soundEffects';
+import { levelUI } from './levelRenderer';
 
 export async function renderGameUI(): Promise<void> {
   const gameState = getCurrentGameState();
@@ -39,15 +40,18 @@ export async function renderGameUI(): Promise<void> {
     ));
     console.log('');
     
-    // Render current level
-    await currentLevel.render();
+    // Render current level in a box
+    await levelUI.levelContent(currentLevel.name, async () => {
+      await currentLevel.render();
+    });
     
     console.log('');
     console.log(theme.secondary('Available commands:'));
     console.log(`${theme.accent('/help')} - Show help, ${theme.accent('/save')} - Save game, ${theme.accent('/menu')} - Main menu, ${theme.accent('/hint')} - Get a hint`);
     console.log('');
     
-    // Get player input
+    // Display input box and get player input
+    levelUI.inputBox();
     const input = await promptInput('');
     
     // Handle special commands
