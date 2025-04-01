@@ -1,0 +1,20 @@
+{
+  "name": "terminal-escape",
+  "version": "1.0.0",
+  "description": "A Linux terminal escape room game",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node -e \"console.log('\\x1b[2J\\x1b[0f\\x1b[36m\\n  Launching Terminal Escape...\\n\\x1b[0m'); setTimeout(() => {}, 1000)\" && bun src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist",
+    "dev": "bun --watch src/index.ts"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "kleur": "^4.1.5"
+  }
+}
