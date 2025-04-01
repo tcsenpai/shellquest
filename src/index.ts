@@ -11,7 +11,7 @@ async function main() {
   // Register all game levels
   registerAllLevels();
   
-  // Render the main menu to start
+  // Render the main menu to start (which now includes the boot sequence)
   await renderMainMenu();
 }
 

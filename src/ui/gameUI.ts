@@ -1,23 +1,31 @@
 import { getCurrentGameState, saveGame } from '../core/gameState';
 import { getLevelById, completeCurrentLevel, getAllLevels } from '../core/levelSystem';
 import { renderMainMenu } from './mainMenu';
-import { clearScreen, promptInput } from './uiHelpers';
-import { styles, drawBox, drawTable } from './uiHelpers';
+import { clearScreen, promptInput, styles, drawBox, drawTable } from './uiHelpers';
+import { 
+  getTheme, 
+  successAnimation, 
+  typewriter,
+  loadingAnimation
+} from './visualEffects';
+import { playSound } from './soundEffects';
 
 export async function renderGameUI(): Promise<void> {
   const gameState = getCurrentGameState();
   if (!gameState) {
-    console.error('No active game');
+    console.error(styles.error('No active game'));
     await renderMainMenu();
     return;
   }
+  
+  const theme = getTheme();
   
   // Game loop
   while (true) {
     // Get the current level at the start of each loop iteration
     const currentLevel = getLevelById(gameState.currentLevel);
     if (!currentLevel) {
-      console.error(styles.error(`Level ${gameState.currentLevel} not found`));
+      console.error(theme.error(`Level ${gameState.currentLevel} not found`));
       await renderMainMenu();
       return;
     }
@@ -26,8 +34,8 @@ export async function renderGameUI(): Promise<void> {
     
     // Display game header
     console.log(drawBox(
-      `TERMINAL ESCAPE - ${styles.title(currentLevel.name)}`,
-      `Player: ${styles.highlight(gameState.playerName)}\nLevel: ${gameState.currentLevel}/${getAllLevels().length}`
+      `TERMINAL ESCAPE - ${theme.accent(currentLevel.name)}`,
+      `Player: ${theme.accent(gameState.playerName)}\nLevel: ${gameState.currentLevel}/${getAllLevels().length}`
     ));
     console.log('');
     
@@ -35,8 +43,8 @@ export async function renderGameUI(): Promise<void> {
     await currentLevel.render();
     
     console.log('');
-    console.log('Available commands:');
-    console.log(`${styles.command('/help')} - Show help, ${styles.command('/save')} - Save game, ${styles.command('/menu')} - Main menu, ${styles.command('/hint')} - Get a hint`);
+    console.log(theme.secondary('Available commands:'));
+    console.log(`${theme.accent('/help')} - Show help, ${theme.accent('/save')} - Save game, ${theme.accent('/menu')} - Main menu, ${theme.accent('/hint')} - Get a hint`);
     console.log('');
     
     // Get player input
@@ -53,7 +61,7 @@ export async function renderGameUI(): Promise<void> {
       
       if (command === 'save') {
         await saveGame();
-        console.log('Game saved successfully!');
+        await successAnimation('Game saved successfully!');
         await promptInput('Press Enter to continue...');
         continue;
       }
@@ -74,12 +82,14 @@ export async function renderGameUI(): Promise<void> {
     
     if (result.message) {
       console.log('');
-      console.log(result.message);
+      await typewriter(result.message, 5);
       await promptInput('Press Enter to continue...');
     }
     
     if (result.completed) {
+      playSound('levelComplete');
       await completeCurrentLevel();
+      await successAnimation('Level completed!');
       
       if (result.nextAction === 'main_menu') {
         await renderMainMenu();
@@ -90,11 +100,12 @@ export async function renderGameUI(): Promise<void> {
         
         if (nextLevel) {
           gameState.currentLevel = nextLevelId;
-          // We don't need to reassign currentLevel here since we'll get it at the start of the next loop
+          await loadingAnimation('Loading next level...', 1500);
         } else {
           // Game completed
           clearScreen();
-          console.log('Congratulations! You have completed all levels!');
+          console.log(theme.success('🎉 Congratulations! You have completed all levels! 🎉'));
+          await typewriter('You have proven yourself to be a master of the terminal.', 20);
           await promptInput('Press Enter to return to the main menu...');
           await renderMainMenu();
           return;
@@ -105,16 +116,18 @@ export async function renderGameUI(): Promise<void> {
 }
 
 async function showHelp(): Promise<void> {
+  const theme = getTheme();
+  
   clearScreen();
-  console.log('=== Help ===');
+  console.log(theme.accent('=== Help ==='));
   console.log('');
   console.log('Terminal Escape is a puzzle game where you solve Linux-themed challenges.');
   console.log('');
-  console.log('Special Commands:');
-  console.log('/help  - Show this help screen');
-  console.log('/save  - Save your game');
-  console.log('/menu  - Return to main menu');
-  console.log('/hint  - Get a hint for the current level');
+  console.log(theme.secondary('Special Commands:'));
+  console.log(`${theme.accent('/help')}  - Show this help screen`);
+  console.log(`${theme.accent('/save')}  - Save your game`);
+  console.log(`${theme.accent('/menu')}  - Return to main menu`);
+  console.log(`${theme.accent('/hint')}  - Get a hint for the current level`);
   console.log('');
   console.log('Each level has its own commands and puzzles to solve.');
   console.log('');
@@ -125,16 +138,18 @@ async function showHint(hints: string[]): Promise<void> {
   const gameState = getCurrentGameState();
   if (!gameState) return;
   
+  const theme = getTheme();
+  
   // Get level state for hints
   const levelState = gameState.levelStates[gameState.currentLevel] || {};
   const hintIndex = levelState.hintIndex || 0;
   
   clearScreen();
-  console.log('=== Hint ===');
+  console.log(theme.accent('=== Hint ==='));
   console.log('');
   
   if (hintIndex < hints.length) {
-    console.log(hints[hintIndex]);
+    await typewriter(hints[hintIndex], 20);
     
     // Update hint index for next time
     gameState.levelStates[gameState.currentLevel] = {
@@ -142,7 +157,7 @@ async function showHint(hints: string[]): Promise<void> {
       hintIndex: hintIndex + 1
     };
   } else {
-    console.log('No more hints available for this level.');
+    console.log(theme.warning('No more hints available for this level.'));
   }
   
   console.log('');

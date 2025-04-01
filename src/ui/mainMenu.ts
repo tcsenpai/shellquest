@@ -4,37 +4,45 @@ import { getLeaderboard, formatTime } from '../core/leaderboard';
 import { startLevel, getAllLevels } from '../core/levelSystem';
 import { renderGameUI } from './gameUI';
 import { clearScreen, promptInput, styles, drawBox } from './uiHelpers';
-import kleur from 'kleur';
+import { 
+  generateLogo, 
+  getTheme, 
+  setTheme, 
+  themes, 
+  bootSequence,
+  animateText,
+  successAnimation,
+  loadingAnimation
+} from './visualEffects';
 
-// ASCII art logo
-const LOGO = `
-████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗     
-╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║     
-   ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║     
-   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║     
-   ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
-   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
-                                                                  
-███████╗███████╗ ██████╗ █████╗ ██████╗ ███████╗                 
-██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝                 
-█████╗  ███████╗██║     ███████║██████╔╝█████╗                   
-██╔══╝  ╚════██║██║     ██╔══██║██╔═══╝ ██╔══╝                   
-███████╗███████║╚██████╗██║  ██║██║     ███████╗                 
-╚══════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚══════╝                 
-`;
+// Track if we've shown the boot sequence
+let bootSequenceShown = false;
 
 export async function renderMainMenu(): Promise<void> {
+  // Show boot sequence only once
+  if (!bootSequenceShown) {
+    await bootSequence();
+    bootSequenceShown = true;
+  } else {
+    clearScreen();
+    console.log(generateLogo());
+    console.log('');
+  }
+  
+  const theme = getTheme();
+  
   while (true) {
     clearScreen();
-    console.log(kleur.cyan(LOGO));
-    console.log(styles.subtitle('A Linux Terminal Escape Room Game'));
+    console.log(generateLogo());
+    console.log(theme.secondary('A Linux Terminal Escape Room Game'));
     console.log('');
     
     const menuOptions = [
-      '1. ' + styles.command('New Game'),
-      '2. ' + styles.command('Load Game'),
-      '3. ' + styles.command('Leaderboard'),
-      '4. ' + styles.command('Exit')
+      '1. ' + theme.accent('New Game'),
+      '2. ' + theme.accent('Load Game'),
+      '3. ' + theme.accent('Leaderboard'),
+      '4. ' + theme.accent('Settings'),
+      '5. ' + theme.accent('Exit')
     ];
     
     console.log(drawBox('MAIN MENU', menuOptions.join('\n')));
@@ -53,39 +61,92 @@ export async function renderMainMenu(): Promise<void> {
         await showLeaderboard();
         break;
       case '4':
-        console.log('Thanks for playing!');
+        await showSettings();
+        break;
+      case '5':
+        await animateText('Thanks for playing Terminal Escape!', 30);
         process.exit(0);
       default:
-        console.log('Invalid option. Press Enter to continue...');
+        console.log(theme.error('Invalid option. Press Enter to continue...'));
         await promptInput('');
     }
   }
 }
 
-async function newGameMenu(): Promise<void> {
+// Add a new settings menu
+async function showSettings(): Promise<void> {
+  const theme = getTheme();
+  
+  while (true) {
+    clearScreen();
+    console.log(theme.accent('=== SETTINGS ==='));
+    console.log('');
+    
+    console.log('1. ' + theme.accent('Change Theme'));
+    console.log('2. ' + theme.accent('Back to Main Menu'));
+    console.log('');
+    
+    const choice = await promptInput('Select an option: ');
+    
+    if (choice === '1') {
+      await changeTheme();
+    } else if (choice === '2') {
+      return;
+    } else {
+      console.log(theme.error('Invalid option. Press Enter to continue...'));
+      await promptInput('');
+    }
+  }
+}
+
+// Add a theme selection menu
+async function changeTheme(): Promise<void> {
+  const theme = getTheme();
+  
   clearScreen();
-  console.log('=== New Game ===');
+  console.log(theme.accent('=== SELECT THEME ==='));
+  console.log('');
+  
+  Object.keys(themes).forEach((themeName, index) => {
+    console.log(`${index + 1}. ${theme.accent(themes[themeName].name)}`);
+  });
+  
+  console.log('');
+  const choice = await promptInput('Select a theme: ');
+  const themeIndex = parseInt(choice) - 1;
+  
+  if (themeIndex >= 0 && themeIndex < Object.keys(themes).length) {
+    const selectedTheme = Object.keys(themes)[themeIndex] as keyof typeof themes;
+    setTheme(selectedTheme);
+    await successAnimation('Theme changed successfully!');
+  } else {
+    console.log(theme.error('Invalid theme selection.'));
+    await promptInput('Press Enter to continue...');
+  }
+}
+
+// Update the existing functions to use the current theme
+async function newGameMenu(): Promise<void> {
+  const theme = getTheme();
+  
+  clearScreen();
+  console.log(theme.accent('=== NEW GAME ==='));
   console.log('');
   
   const playerName = await promptInput('Enter your name: ');
+  
   if (!playerName) {
-    console.log('Name cannot be empty. Press Enter to return to main menu...');
-    await promptInput('');
+    console.log(theme.error('Name cannot be empty.'));
+    await promptInput('Press Enter to continue...');
     return;
   }
   
-  // Create new game state
-  createNewGame(playerName);
+  await loadingAnimation('Creating new game...', 1000);
   
-  // Start the first level
-  const levels = getAllLevels();
-  if (levels.length > 0) {
-    await startLevel(levels[0].id);
-    await renderGameUI();
-  } else {
-    console.log('No levels available. Press Enter to return to main menu...');
-    await promptInput('');
-  }
+  const gameState = createNewGame(playerName);
+  startLevel(gameState.currentLevel);
+  
+  await renderGameUI();
 }
 
 async function loadGameMenu(): Promise<void> {

@@ -1,33 +1,48 @@
 import { styles, drawBox, drawTable } from './uiHelpers';
+import { getTheme } from './visualEffects';
 
 export const levelUI = {
-  title: (text: string) => console.log(styles.title(text)),
-  subtitle: (text: string) => console.log(styles.subtitle(text)),
+  title: (text: string) => {
+    const theme = getTheme();
+    console.log(theme.accent(text));
+  },
+  
+  subtitle: (text: string) => {
+    const theme = getTheme();
+    console.log(theme.secondary(text));
+  },
+  
   paragraph: (text: string) => console.log(text),
+  
   spacer: () => console.log(''),
   
-  box: (title: string, content: string) => console.log(drawBox(title, content)),
+  box: (title: string, content: string) => {
+    const theme = getTheme();
+    console.log(drawBox(theme.accent(title), content));
+  },
   
   terminal: (content: string) => {
-    console.log('  ' + styles.dim('┌─ Terminal ───────────────────────┐'));
+    const theme = getTheme();
+    console.log('  ' + theme.secondary('┌─ Terminal ───────────────────────┐'));
     content.split('\n').forEach(line => {
-      console.log('  ' + styles.dim('│') + ' ' + styles.highlight(line));
+      console.log('  ' + theme.secondary('│') + ' ' + theme.accent(line));
     });
-    console.log('  ' + styles.dim('└────────────────────────────────────┘'));
+    console.log('  ' + theme.secondary('└────────────────────────────────────┘'));
   },
   
   fileSystem: (path: string, items: {name: string, type: string}[]) => {
-    console.log(styles.path(`Current directory: ${path}`));
+    const theme = getTheme();
+    console.log(theme.info(`Current directory: ${path}`));
     console.log('');
     
     if (items.length === 0) {
-      console.log(styles.dim('  (empty directory)'));
+      console.log(theme.secondary('  (empty directory)'));
       return;
     }
     
     items.forEach(item => {
       const icon = item.type === 'dir' ? '📁' : '📄';
-      console.log(`  ${icon} ${item.name}`);
+      console.log(`  ${icon} ${item.type === 'dir' ? theme.accent(item.name) : item.name}`);
     });
   },
   
@@ -45,7 +60,8 @@ export const levelUI = {
   },
   
   commands: (commands: string[]) => {
-    console.log(styles.subtitle('Available Commands:'));
-    commands.forEach(cmd => console.log('  ' + styles.command(cmd)));
+    const theme = getTheme();
+    console.log(theme.secondary('Available Commands:'));
+    commands.forEach(cmd => console.log('  ' + theme.accent(cmd)));
   }
 }; 
