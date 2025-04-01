@@ -4,3 +4,4 @@ build
 *.lock
 leaderboard.json
 saves
+profiles
