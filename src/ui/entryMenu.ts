@@ -92,7 +92,7 @@ async function loadGameMenu(): Promise<boolean> {
   console.log(theme.accent('=== LOAD GAME ==='));
   console.log('');
   
-  // Get list of save files
+  // Get list of save files (just player names)
   const saveFiles = await listSaves();
   
   if (saveFiles.length === 0) {
@@ -101,24 +101,24 @@ async function loadGameMenu(): Promise<boolean> {
     return false;
   }
   
-  console.log('Available saved games:');
+  console.log('Available players:');
   saveFiles.forEach((save, index) => {
     console.log(`${index + 1}. ${theme.accent(save)}`);
   });
   console.log('');
   
-  const choice = await promptInput('Select a saved game (or 0 to cancel): ');
+  const choice = await promptInput('Select a player (or 0 to cancel): ');
   const choiceNum = parseInt(choice);
   
   if (choiceNum === 0 || isNaN(choiceNum) || choiceNum > saveFiles.length) {
     return false;
   }
   
-  const saveName = saveFiles[choiceNum - 1];
+  const playerName = saveFiles[choiceNum - 1];
   
   // Try to load the save
   await loadingAnimation('Loading game...', 1000);
-  const success = await loadGame(saveName);
+  const success = await loadGame(playerName);
   
   if (success) {
     await successAnimation('Game loaded successfully!');

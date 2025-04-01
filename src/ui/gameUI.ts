@@ -70,8 +70,12 @@ export async function renderGameUI(): Promise<void> {
       }
       
       if (command === 'save') {
-        await saveGame();
-        await successAnimation('Game saved successfully!');
+        const result = await saveGame();
+        if (result.success) {
+          console.log(theme.success(result.message));
+        } else {
+          console.log(theme.error(result.message));
+        }
         await promptInput('Press Enter to continue...');
         continue;
       }

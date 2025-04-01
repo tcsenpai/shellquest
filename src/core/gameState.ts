@@ -40,45 +40,51 @@ export function createNewGame(playerName: string): GameState {
   setCurrentGameState(gameState);
   
   // Save the initial game state
-  saveGame(playerName);
+  saveGame();
   
   return gameState;
 }
 
-export async function saveGame(saveName?: string): Promise<boolean> {
+export async function saveGame(): Promise<{ success: boolean, message: string }> {
   if (!currentGameState) {
-    console.error('No active game to save');
-    return false;
+    return { 
+      success: false, 
+      message: 'No active game to save' 
+    };
   }
   
   // Update save time
   currentGameState.lastSaveTime = Date.now();
   
-  // Use player name as save name if not specified
-  const fileName = saveName || currentGameState.playerName;
+  // Always use player name as save name
+  const fileName = currentGameState.playerName;
   
   try {
     await fs.writeFile(
       getSavePath(fileName),
       JSON.stringify(currentGameState, null, 2)
     );
-    console.log(`Game saved as ${fileName}`);
-    return true;
+    return { 
+      success: true, 
+      message: `Game saved for ${fileName}` 
+    };
   } catch (error) {
-    console.error('Failed to save game:', error);
-    return false;
+    return { 
+      success: false, 
+      message: `Failed to save game: ${error}` 
+    };
   }
 }
 
-export async function loadGame(saveName: string): Promise<boolean> {
+export async function loadGame(playerName: string): Promise<boolean> {
   try {
-    const saveData = await fs.readFile(getSavePath(saveName), 'utf-8');
+    const saveData = await fs.readFile(getSavePath(playerName), 'utf-8');
     currentGameState = JSON.parse(saveData) as GameState;
     
     // Make sure the profile exists
     await createOrLoadProfile(currentGameState.playerName);
     
-    console.log(`Game loaded: ${saveName}`);
+    console.log(`Game loaded for ${playerName}`);
     return true;
   } catch (error) {
     console.error('Failed to load game:', error);
@@ -86,9 +92,9 @@ export async function loadGame(saveName: string): Promise<boolean> {
   }
 }
 
-export async function autoSave(): Promise<boolean> {
-  if (!currentGameState) return false;
-  return saveGame(`${currentGameState.playerName}_autosave`);
+// Autosave now just calls regular save
+export async function autoSave(): Promise<{ success: boolean, message: string }> {
+  return saveGame();
 }
 
 async function createOrLoadProfile(playerName: string): Promise<void> {
