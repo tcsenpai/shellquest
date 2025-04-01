@@ -1,4 +1,4 @@
-import { createNewGame, loadGame } from '../core/gameState';
+import { createNewGame, loadGame, getCurrentGameState } from '../core/gameState';
 import { listSaves } from '../core/gameInit';
 import { getLeaderboard, formatTime } from '../core/leaderboard';
 import { startLevel, getAllLevels } from '../core/levelSystem';
@@ -25,6 +25,7 @@ import {
   initSoundSystem
 } from './soundEffects';
 import { addToHistory } from './commandHistory';
+import { renderEntryMenu } from './entryMenu';
 
 // Track if we've shown the boot sequence
 let bootSequenceShown = false;
@@ -33,14 +34,11 @@ let bootSequenceShown = false;
 initSoundSystem();
 
 export async function renderMainMenu(): Promise<void> {
-  // Show boot sequence only once
-  if (!bootSequenceShown) {
-    await bootSequence();
-    bootSequenceShown = true;
-  } else {
-    clearScreen();
-    console.log(generateLogo());
-    console.log('');
+  const gameState = getCurrentGameState();
+  if (!gameState) {
+    // If no game state, go back to entry menu
+    await renderEntryMenu();
+    return;
   }
   
   const theme = getTheme();
@@ -52,48 +50,52 @@ export async function renderMainMenu(): Promise<void> {
     console.log('');
     
     const menuOptions = [
-      '1. ' + theme.accent('New Game'),
-      '2. ' + theme.accent('Load Game'),
-      '3. ' + theme.accent('Leaderboard'),
-      '4. ' + theme.accent('Achievements'),
-      '5. ' + theme.accent('Progress Map'),
-      '6. ' + theme.accent('Settings'),
+      '1. ' + theme.accent('Continue Game'),
+      '2. ' + theme.accent('Achievements'),
+      '3. ' + theme.accent('Progress Map'),
+      '4. ' + theme.accent('Leaderboard'),
+      '5. ' + theme.accent('Settings'),
+      '6. ' + theme.accent('Back to Entry Menu'),
       '7. ' + theme.accent('Exit')
     ];
     
     console.log(drawBox('MAIN MENU', menuOptions.join('\n')));
     console.log('');
+    console.log(theme.info(`Player: ${gameState.playerName}`));
+    console.log('');
     
     const choice = await promptInput('Select an option: ');
     
-    switch (choice) {
-      case '1':
-        await newGameMenu();
-        break;
-      case '2':
-        await loadGameMenu();
-        break;
-      case '3':
-        await showLeaderboard();
-        break;
-      case '4':
-        await showAchievements();
-        await promptInput('Press Enter to continue...');
-        break;
-      case '5':
-        clearScreen();
-        renderProgressMap();
-        await promptInput('Press Enter to continue...');
-        break;
-      case '6':
-        await showSettings();
-        break;
-      case '7':
-        await animateText('Thanks for playing Terminal Escape!', 30);
-        process.exit(0);
-      default:
-        console.log(theme.error('Invalid option. Press Enter to continue...'));
-        await promptInput('');
+    if (choice === '1') {
+      // Continue game
+      startLevel(gameState.currentLevel);
+      await renderGameUI();
+    } else if (choice === '2') {
+      // Show achievements
+      await showAchievements();
+      await promptInput('Press Enter to continue...');
+    } else if (choice === '3') {
+      // Show progress map
+      clearScreen();
+      await renderProgressMap();
+      await promptInput('Press Enter to continue...');
+    } else if (choice === '4') {
+      // Show leaderboard
+      await showLeaderboard();
+    } else if (choice === '5') {
+      // Settings
+      await showSettings();
+    } else if (choice === '6') {
+      // Back to entry menu
+      await renderEntryMenu();
+      return;
+    } else if (choice === '7') {
+      // Exit
+      await animateText('Thanks for playing Terminal Escape!', 30);
+      process.exit(0);
+    } else {
+      console.log(theme.error('Invalid option. Press Enter to continue...'));
+      await promptInput('');
     }
   }
 }
@@ -150,80 +152,22 @@ async function changeTheme(): Promise<void> {
   }
 }
 
-// Update the existing functions to use the current theme
-async function newGameMenu(): Promise<void> {
+async function showLeaderboard(): Promise<void> {
   const theme = getTheme();
   
   clearScreen();
-  console.log(theme.accent('=== NEW GAME ==='));
-  console.log('');
-  
-  const playerName = await promptInput('Enter your name: ');
-  
-  if (!playerName) {
-    console.log(theme.error('Name cannot be empty.'));
-    await promptInput('Press Enter to continue...');
-    return;
-  }
-  
-  await loadingAnimation('Creating new game...', 1000);
-  
-  const gameState = createNewGame(playerName);
-  startLevel(gameState.currentLevel);
-  
-  await renderGameUI();
-}
-
-async function loadGameMenu(): Promise<void> {
-  clearScreen();
-  console.log('=== Load Game ===');
-  console.log('');
-  
-  const saves = await listSaves();
-  if (saves.length === 0) {
-    console.log('No saved games found. Press Enter to return to main menu...');
-    await promptInput('');
-    return;
-  }
-  
-  console.log('Available saves:');
-  saves.forEach((save, index) => {
-    console.log(`${index + 1}. ${save.replace('.json', '')}`);
-  });
-  console.log('');
-  
-  const choice = await promptInput('Select a save to load (or 0 to cancel): ');
-  const choiceNum = parseInt(choice);
-  
-  if (choiceNum === 0 || isNaN(choiceNum) || choiceNum > saves.length) {
-    return;
-  }
-  
-  const saveName = saves[choiceNum - 1].replace('.json', '');
-  const success = await loadGame(saveName);
-  
-  if (success) {
-    await renderGameUI();
-  } else {
-    console.log('Failed to load game. Press Enter to return to main menu...');
-    await promptInput('');
-  }
-}
-
-async function showLeaderboard(): Promise<void> {
-  clearScreen();
-  console.log('=== Leaderboard ===');
+  console.log(theme.accent('=== LEADERBOARD ==='));
   console.log('');
   
   const leaderboard = await getLeaderboard();
   
   if (leaderboard.players.length === 0) {
-    console.log('No entries yet. Be the first to complete the game!');
+    console.log(theme.warning('No entries yet. Be the first to complete the game!'));
   } else {
     console.log('Top Players:');
     console.log('-----------');
     leaderboard.players.slice(0, 10).forEach((entry, index) => {
-      console.log(`${index + 1}. ${entry.playerName} - ${formatTime(entry.completionTime)}`);
+      console.log(`${index + 1}. ${theme.accent(entry.playerName)} - ${formatTime(entry.completionTime)}`);
     });
   }
   

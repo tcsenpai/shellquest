@@ -33,15 +33,37 @@ export async function initializeGame() {
 }
 
 // Helper functions for save management
-export async function listSaves() {
+export async function listSaves(): Promise<string[]> {
   try {
+    await ensureSavesDir();
     const files = await fs.readdir(SAVE_DIR);
-    return files.filter(file => file.endsWith('.json'));
+    
+    // Filter out profile files and remove .json extension
+    return files
+      .filter(file => file.endsWith('.json') && !file.endsWith('_profile.json'))
+      .map(file => file.replace('.json', ''));
   } catch (error) {
-    console.error('Failed to list saves:', error);
+    console.error('Error listing saves:', error);
     return [];
   }
 }
 
-export const getSavePath = (saveName: string) => path.join(SAVE_DIR, `${saveName}.json`);
-export const getLeaderboardPath = () => LEADERBOARD_PATH; 
+export function getSavePath(saveName: string): string {
+  // Remove .json extension if it's already there
+  const baseName = saveName.endsWith('.json') 
+    ? saveName.slice(0, -5) 
+    : saveName;
+    
+  return path.join(SAVE_DIR, `${baseName}.json`);
+}
+
+export const getLeaderboardPath = () => LEADERBOARD_PATH;
+
+// Ensure saves directory exists
+export async function ensureSavesDir(): Promise<void> {
+  try {
+    await fs.mkdir(SAVE_DIR, { recursive: true });
+  } catch (error) {
+    console.error('Error creating saves directory:', error);
+  }
+} 

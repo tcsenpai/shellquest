@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { renderMainMenu } from './ui/mainMenu';
+import { renderEntryMenu } from './ui/entryMenu';
 import { initializeGame } from './core/gameInit';
 import { registerAllLevels } from './levels';
 import { initializeAchievements } from './core/achievements';
@@ -15,8 +15,8 @@ async function main() {
   // Register all game levels
   registerAllLevels();
   
-  // Render the main menu to start
-  await renderMainMenu();
+  // Render the entry menu to start
+  await renderEntryMenu();
 }
 
 main().catch(error => {

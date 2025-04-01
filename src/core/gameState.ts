@@ -1,5 +1,7 @@
 import fs from 'fs/promises';
 import { getSavePath } from './gameInit';
+import { createProfile, loadProfile, saveProfile } from './playerProfile';
+import { getCurrentProfile } from './playerProfile';
 
 export interface GameState {
   playerName: string;
@@ -17,8 +19,12 @@ export function getCurrentGameState(): GameState | null {
   return currentGameState;
 }
 
+export function setCurrentGameState(gameState: GameState): void {
+  currentGameState = gameState;
+}
+
 export function createNewGame(playerName: string): GameState {
-  const newState: GameState = {
+  const gameState: GameState = {
     playerName,
     currentLevel: 1,
     startTime: Date.now(),
@@ -28,8 +34,15 @@ export function createNewGame(playerName: string): GameState {
     levelStates: {}
   };
   
-  currentGameState = newState;
-  return newState;
+  // Create a new profile for this player
+  createOrLoadProfile(playerName);
+  
+  setCurrentGameState(gameState);
+  
+  // Save the initial game state
+  saveGame(playerName);
+  
+  return gameState;
 }
 
 export async function saveGame(saveName?: string): Promise<boolean> {
@@ -61,6 +74,10 @@ export async function loadGame(saveName: string): Promise<boolean> {
   try {
     const saveData = await fs.readFile(getSavePath(saveName), 'utf-8');
     currentGameState = JSON.parse(saveData) as GameState;
+    
+    // Make sure the profile exists
+    await createOrLoadProfile(currentGameState.playerName);
+    
     console.log(`Game loaded: ${saveName}`);
     return true;
   } catch (error) {
@@ -72,4 +89,36 @@ export async function loadGame(saveName: string): Promise<boolean> {
 export async function autoSave(): Promise<boolean> {
   if (!currentGameState) return false;
   return saveGame(`${currentGameState.playerName}_autosave`);
+}
+
+async function createOrLoadProfile(playerName: string): Promise<void> {
+  const profile = await loadProfile(playerName);
+  if (!profile) {
+    await createProfile(playerName);
+  }
+}
+
+export async function completeCurrentLevel(): Promise<void> {
+  const gameState = getCurrentGameState();
+  if (!gameState) return;
+  
+  // Add the level to completed levels in the game state
+  if (!gameState.completedLevels.includes(gameState.currentLevel)) {
+    gameState.completedLevels.push(gameState.currentLevel);
+  }
+  
+  // Also update the profile
+  const profile = await getCurrentProfile();
+  if (profile) {
+    if (!profile.completedLevels.includes(gameState.currentLevel)) {
+      profile.completedLevels.push(gameState.currentLevel);
+      await saveProfile(profile);
+    }
+  }
+  
+  // Move to the next level
+  gameState.currentLevel++;
+  
+  // Save the game
+  await saveGame();
 } 

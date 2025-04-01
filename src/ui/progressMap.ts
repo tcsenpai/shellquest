@@ -1,14 +1,18 @@
-import { getAllLevels, getLevelById } from '../core/levelSystem';
-import { getCurrentGameState } from '../core/gameState';
+import { getAllLevels } from '../core/levelSystem';
+import { getCurrentProfile } from '../core/playerProfile';
 import { getTheme } from './visualEffects';
 
-export function renderProgressMap(): void {
-  const gameState = getCurrentGameState();
-  if (!gameState) return;
+export async function renderProgressMap(): Promise<void> {
+  const profile = await getCurrentProfile();
+  if (!profile) {
+    console.log('No active player profile. Please start a game first.');
+    return;
+  }
   
   const theme = getTheme();
   const allLevels = getAllLevels();
-  const currentLevelId = gameState.currentLevel;
+  const completedLevels = profile.completedLevels;
+  const currentLevelId = Math.max(...completedLevels) + 1;
   
   console.log(theme.accent('=== Progress Map ==='));
   console.log('');
@@ -53,11 +57,11 @@ export function renderProgressMap(): void {
   console.log('└' + '─'.repeat(maxNameLength + 22) + '┘');
   
   // Show completion percentage
-  const completedLevels = Math.max(0, currentLevelId - 1);
-  const completionPercentage = Math.round((completedLevels / allLevels.length) * 100);
+  const completedLevelsCount = completedLevels.length;
+  const completionPercentage = Math.round((completedLevelsCount / allLevels.length) * 100);
   
   console.log('');
-  console.log(`Overall Progress: ${completedLevels}/${allLevels.length} levels completed (${completionPercentage}%)`);
+  console.log(`Overall Progress: ${completedLevelsCount}/${allLevels.length} levels completed (${completionPercentage}%)`);
   
   // Visual progress bar
   const progressBarWidth = 40;

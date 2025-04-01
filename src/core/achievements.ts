@@ -3,6 +3,8 @@ import path from 'path';
 import { getCurrentGameState } from './gameState';
 import { getTheme, successAnimation } from '../ui/visualEffects';
 import { playSound } from '../ui/soundEffects';
+import { getCurrentProfile } from './playerProfile';
+import { saveProfile } from './playerProfile';
 
 // Define achievement types
 export interface Achievement {
@@ -81,14 +83,14 @@ const achievementsPath = path.join(process.cwd(), 'achievements.json');
 
 // Load achievements from file
 export async function loadAchievements(): Promise<Achievement[]> {
-  try {
-    const data = await fs.readFile(achievementsPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    // If file doesn't exist, create it with default achievements
-    await saveAchievements(achievements);
-    return achievements;
+  const profile = await getCurrentProfile();
+  
+  if (profile && profile.achievements.length > 0) {
+    return profile.achievements;
   }
+  
+  // Return default achievements if no profile exists or no achievements in profile
+  return [...achievements];
 }
 
 // Save achievements to file
@@ -109,36 +111,42 @@ export async function getPlayerAchievements(playerName: string): Promise<Achieve
 }
 
 // Unlock an achievement
-export async function unlockAchievement(achievementId: string): Promise<boolean> {
-  const gameState = getCurrentGameState();
-  if (!gameState) return false;
+export async function unlockAchievement(id: string): Promise<boolean> {
+  const profile = await getCurrentProfile();
+  if (!profile) return false;
   
-  // Load achievements
-  const allAchievements = await loadAchievements();
-  const achievement = allAchievements.find(a => a.id === achievementId);
+  // Find the achievement in the profile
+  let achievementIndex = profile.achievements.findIndex(a => a.id === id);
   
-  if (!achievement || achievement.unlocked) {
-    return false; // Achievement doesn't exist or is already unlocked
+  // If not found in profile, check the default achievements
+  if (achievementIndex === -1) {
+    const defaultAchievement = achievements.find(a => a.id === id);
+    if (!defaultAchievement) return false;
+    
+    // Add the achievement to the profile
+    profile.achievements.push({
+      ...defaultAchievement,
+      unlocked: true,
+      unlockedAt: Date.now()
+    });
+  } else {
+    // Achievement already exists in profile, just update it
+    if (profile.achievements[achievementIndex].unlocked) {
+      return false; // Already unlocked
+    }
+    
+    profile.achievements[achievementIndex].unlocked = true;
+    profile.achievements[achievementIndex].unlockedAt = Date.now();
   }
   
-  // Unlock the achievement
-  achievement.unlocked = true;
-  achievement.unlockedAt = Date.now();
-  
-  // Save achievements
-  await saveAchievements(allAchievements);
+  // Save the updated profile
+  await saveProfile(profile);
   
   // Show achievement notification
-  const theme = getTheme();
-  console.log('\n');
-  console.log('╔' + '═'.repeat(50) + '╗');
-  console.log('║ ' + theme.accent('Achievement Unlocked!').padEnd(48) + ' ║');
-  console.log('║ ' + `${achievement.icon}  ${achievement.name}`.padEnd(48) + ' ║');
-  console.log('║ ' + achievement.description.padEnd(48) + ' ║');
-  console.log('╚' + '═'.repeat(50) + '╝');
-  
-  // Play sound
-  playSound('success');
+  const achievement = profile.achievements.find(a => a.id === id);
+  if (achievement) {
+    await showAchievementNotification(achievement);
+  }
   
   return true;
 }
