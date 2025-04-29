@@ -151,6 +151,16 @@ export async function unlockAchievement(id: string): Promise<boolean> {
   return true;
 }
 
+export async function showAchievementNotification(achievement: Achievement): Promise<void> {
+  const theme = getTheme();
+  const profile = await getCurrentProfile();
+  
+  if (!profile) return;
+  const message = `${theme.success('Achievement Unlocked!')} ${achievement.icon} ${theme.accent(achievement.name)} - ${achievement.description}`;
+  console.log(message);
+  console.log(theme.success('Achievement Unlocked!'));
+}
+
 // Check and potentially unlock achievements based on game events
 export async function checkAchievements(event: string, data?: any): Promise<void> {
   const gameState = getCurrentGameState();
